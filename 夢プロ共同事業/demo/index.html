@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>夢プロ 共同事業デモ（仮データ）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1E2B3A; --sub:#55606C; --paper:#F6F7F5; --card:#FFFFFF; --line:#D6DBD8;
+  --leaf:#2F6F60; --leaf-soft:#E3EFEB; --amber:#9A6412; --amber-soft:#FBF1DE; --loss:#A33A3A;
+  --serif:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.75;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.top{position:sticky;top:0;z-index:20}
+.demo-band{background:var(--amber);color:#fff;font-size:13px;padding:6px 16px;
+  padding-top:calc(6px + env(safe-area-inset-top,0px));text-align:center}
+nav{background:var(--ink);display:flex;overflow-x:auto}
+nav button{flex:1 0 auto;background:none;border:0;color:#C9D2DB;font:500 14px var(--sans);padding:12px 16px;cursor:pointer;border-bottom:3px solid transparent}
+nav button[aria-selected="true"]{color:#fff;border-bottom-color:#8FC7B7}
+nav button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #8FC7B7;outline-offset:2px}
+main{max-width:1040px;margin:0 auto;padding:24px 18px 64px}
+section[hidden]{display:none}
+h1,h2{font-family:var(--serif);font-weight:700;line-height:1.35;margin:0 0 .5em}
+h1{font-size:clamp(28px,5vw,44px)}
+h2{font-size:22px;margin-top:40px}
+h3{font-size:16px;margin:0 0 .3em}
+p{margin:0 0 1em;max-width:40em}
+.lead{font-size:17px;color:var(--sub)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.box{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:3px;background:var(--leaf-soft);color:var(--leaf);font-weight:700}
+.tag.pending{background:var(--amber-soft);color:var(--amber)}
+.tag.off{background:#ECEEF0;color:var(--sub)}
+.btn{display:inline-block;border:0;border-radius:4px;background:var(--leaf);color:#fff;font:700 15px var(--sans);padding:11px 20px;cursor:pointer}
+.btn.ghost{background:none;color:var(--leaf);border:1px solid var(--leaf)}
+.note{font-size:13px;color:var(--sub)}
+.hero{padding:28px 0 8px;border-bottom:1px solid var(--line)}
+.hero .mark{font-family:var(--serif);font-size:15px;color:var(--leaf);letter-spacing:.2em}
+.photo{aspect-ratio:4/3;border:2px dashed #B9C3BF;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  text-align:center;color:var(--sub);font-size:13px;background:repeating-linear-gradient(45deg,#fff,#fff 10px,#F1F3F2 10px,#F1F3F2 20px);padding:12px}
+.photo.wide{grid-column:1/-1;aspect-ratio:16/7}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card)}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#EEF1F0;font-weight:700;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+.scroll table{border:0}
+details{background:var(--card);border:1px solid var(--line);border-radius:6px;margin-bottom:8px}
+summary{cursor:pointer;padding:12px 16px;font-weight:700}
+details p{padding:0 16px 8px}
+label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+input[type=text],input[type=number],select,textarea{width:100%;font:15px var(--sans);padding:8px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink)}
+.inputs{display:grid;gap:4px 14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.kpi{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px}
+.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--sub)}
+.neg{color:var(--loss)}
+.funnel .row{display:grid;grid-template-columns:160px 1fr 90px;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.funnel .bar{height:18px;background:var(--leaf);border-radius:2px;min-width:2px}
+.funnel .bar.pending{background:#C7A469}
+.check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;width:18px;height:18px}
+.stamp{border:1px solid var(--amber);color:var(--amber);background:var(--amber-soft);padding:10px 14px;border-radius:6px;font-size:14px;margin:12px 0}
+dialog{border:0;border-radius:8px;max-width:520px;width:calc(100% - 32px);padding:22px;color:var(--ink)}
+dialog::backdrop{background:rgba(30,43,58,.45)}
+code{background:#EEF1F0;padding:1px 5px;border-radius:3px;font-size:13px;word-break:break-all}
+ol.steps{padding-left:1.4em}
+@media (max-width:560px){.funnel .row{grid-template-columns:110px 1fr 70px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="demo-band" role="note">デモ画面です。表示はすべて仮データで、実際の予約・決済・メール送信・SNS投稿は行いません。</div>
+<nav role="tablist" aria-label="画面の切り替え">
+  <button role="tab" aria-selected="true" data-tab="a">A 夢プロ紹介</button>
+  <button role="tab" aria-selected="false" data-tab="b">B 体験プラン</button>
+  <button role="tab" aria-selected="false" data-tab="c">C 運営管理</button>
+  <button role="tab" aria-selected="false" data-tab="d">D 成果報告（見本）</button>
+</nav></header>
+<main>
+
+<!-- A -->
+<section id="tab-a">
+  <div class="hero">
+    <div class="mark">夢叶えるプロジェクト</div>
+    <h1>挑戦する人と企業が、<br>一緒に商品をつくる。</h1>
+    <p class="lead">夢プロは、挑戦したい人の思いと、企業の場所や商品を組み合わせて、実際に買える体験やサービスにする取り組みです。</p>
+  </div>
+
+  <h2>目的</h2>
+  <div class="grid">
+    <div class="box"><h3>挑戦する人に</h3><p>企画を「話題」で終わらせず、販売まで形にする場をつくります。</p></div>
+    <div class="box"><h3>企業に</h3><p>自社の施設や商品を、体験として届ける新しい販売の入口をつくります。</p></div>
+    <div class="box"><h3>利用する人に</h3><p>出演者と同じ体験を、施設の公式予約から申し込めるようにします。</p></div>
+  </div>
+
+  <h2>挑戦企画の一覧</h2>
+  <div class="grid" id="projectCards"></div>
+
+  <h2>企業の皆さまへ</h2>
+  <div class="box">
+    <p>夢プロでは、体験の舞台となる施設と、体験の中で使う商品を提供いただける企業を募っています。</p>
+    <div class="scroll"><table>
+      <tr><th>協力の形</th><th>内容</th></tr>
+      <tr><td>施設として参加</td><td>限定プランの共同企画。予約・決済は施設の既存システムで行います。</td></tr>
+      <tr><td>体験協賛</td><td>体験の中で商品を使用し、動画と紹介ページで紹介します（広告である旨を表示）。</td></tr>
+      <tr><td>宿泊者特典協賛</td><td>プラン利用者へ商品サンプルを提供し、利用完了数をご報告します。</td></tr>
+    </table></div>
+    <p style="margin-top:14px"><button class="btn" data-demo="contact-company">協力について問い合わせる</button></p>
+  </div>
+
+  <h2>参加を検討している方へ</h2>
+  <div class="box">
+    <ol class="steps">
+      <li>実現したいことを伺います（内容はこちらで決めません）。</li>
+      <li>形にできる企業・施設を探し、企画案をつくります。</li>
+      <li>出演・発信の条件、肖像の使い方、報酬を書面で合意します。</li>
+      <li>合意した範囲でのみ撮影・公開します。</li>
+    </ol>
+    <form id="applyForm" novalidate>
+      <label for="ap-name">お名前（デモ：送信・保存されません）</label>
+      <input type="text" id="ap-name" autocomplete="off">
+      <label for="ap-wish">実現したいこと</label>
+      <textarea id="ap-wish" rows="3"></textarea>
+      <p style="margin-top:12px"><button class="btn" type="submit">相談を申し込む</button></p>
+    </form>
+  </div>
+</section>
+
+<!-- B -->
+<section id="tab-b" hidden>
+  <div class="hero">
+    <div class="mark">夢プロ × 〇〇ホテル（施設名は未定）</div>
+    <h1>泊まる、味わう、ととのう。<br>一泊の限定プラン</h1>
+    <p class="lead">出演者が体験した客室・お食事・スパを、そのままの組み合わせでご予約いただけます。</p>
+    <p><span class="tag pending">出演：鈴木優香さん（参加検討中）</span></p>
+  </div>
+
+  <h2>写真</h2>
+  <div class="grid">
+    <div class="photo wide">体験映像・メイン写真の枠<br>（出演者の許諾を得た素材のみ掲載）</div>
+    <div class="photo">客室写真の枠<br>（施設提供の写真を掲載予定）</div>
+    <div class="photo">お食事写真の枠<br>（施設提供の写真を掲載予定）</div>
+    <div class="photo">スパ写真の枠<br>（施設提供の写真を掲載予定）</div>
+  </div>
+
+  <h2>プラン内容</h2>
+  <div class="scroll"><table>
+    <tr><th>客室</th><td>対象客室タイプ（施設と確定後に記載）</td></tr>
+    <tr><th>お食事</th><td>夕食・朝食（内容は施設と確定後に記載）</td></tr>
+    <tr><th>スパ</th><td>施術メニュー・時間（クレドインターナショナルと確定後に記載）</td></tr>
+    <tr><th>特典</th><td>未定（協賛が決まった場合に記載）</td></tr>
+  </table></div>
+
+  <h2>料金と利用条件</h2>
+  <div class="scroll"><table>
+    <tr><th>料金</th><td><span class="tag pending">未確定</span> 1室2名 〇〇円（税込）〜　※施設の確定料金を表示する枠</td></tr>
+    <tr><th>販売期間</th><td><span class="tag pending">未確定</span> 〇年〇月〇日〜〇月〇日</td></tr>
+    <tr><th>対象日</th><td><span class="tag pending">未確定</span> 除外日の有無</td></tr>
+    <tr><th>キャンセル規定</th><td><span class="tag pending">未確定</span> 施設の規定に従う</td></tr>
+    <tr><th>予約方法</th><td>施設の公式予約画面から（このページでは予約・決済を受け付けません）</td></tr>
+  </table></div>
+
+  <p style="margin-top:20px"><button class="btn" id="goBooking">公式予約画面へ進む</button></p>
+  <p class="note" id="clickNote">このデモで予約画面ボタンが押された回数：0回（再読み込みで0に戻ります）</p>
+
+  <h2>よくある質問</h2>
+  <details><summary>どこで予約できますか？</summary><p>施設の公式予約画面からご予約ください。このページでは予約・決済を受け付けません。</p></details>
+  <details><summary>出演者に会えますか？</summary><p>本プランは出演者が体験した内容を予約いただくもので、出演者との面会は含まれません。</p></details>
+  <details><summary>キャンセルはできますか？</summary><p>施設のキャンセル規定に従います（規定は確定後に掲載します）。</p></details>
+  <details><summary>スパの施術内容を変更できますか？</summary><p>内容は施設・スパ運営者と確定後に掲載します。</p></details>
+</section>
+
+<!-- C -->
+<section id="tab-c" hidden>
+  <h1 style="font-size:30px">運営管理</h1>
+  <div class="stamp">社内用の管理画面の見本です。数字・状況はすべて仮データで、実在の企業・人物との合意を示すものではありません。変更内容は保存されず、再読み込みで初期状態に戻ります。</div>
+
+  <h2>次に必要な作業</h2>
+  <div class="box"><ol id="nextTasks" style="margin:0;padding-left:1.4em"></ol></div>
+
+  <h2>企画ごとの進捗</h2>
+  <div class="scroll"><table id="projTable"></table></div>
+
+  <h2>企業への提案状況</h2>
+  <div class="scroll"><table id="dealTable"></table></div>
+
+  <h2>契約・許諾の確認</h2>
+  <div class="box" id="checks"></div>
+  <p id="publishState" style="margin-top:10px"></p>
+
+  <h2>制作物一覧</h2>
+  <div class="scroll"><table id="assetTable"></table></div>
+
+  <h2>予約・利用実績（施設データ取り込みの見本）</h2>
+  <p class="note">施設から受け取るプラン別予約データ（個人情報なし）を想定。予約番号で重複を除き、識別できない予約は成果に含めません。</p>
+  <div class="scroll"><table id="bookTable"></table></div>
+  <div class="kpi" id="bookKpi" style="margin-top:12px"></div>
+
+  <h2>案件別の費用と利益（初回実証）</h2>
+  <p class="note">数値を変えると即時に再計算します。計算式は採算モデル（Excel）と同じです。すべて仮定値です。</p>
+  <div class="box">
+    <div class="inputs" id="inputs"></div>
+  </div>
+  <div class="kpi" id="plKpi" style="margin-top:14px"></div>
+  <div class="scroll" style="margin-top:14px"><table id="plTable"></table></div>
+</section>
+
+<!-- D -->
+<section id="tab-d" hidden>
+  <h1 style="font-size:30px">成果報告（見本）</h1>
+  <div class="stamp">報告書の形式を示す見本です。数字は仮データであり、実績でも売上予測でもありません。予約・利用の件数はC画面の入力値に連動します。</div>
+
+  <h2>集客から利用までの流れ</h2>
+  <div class="box funnel" id="funnel"></div>
+  <p class="note">再生数・ページ訪問・予約画面への遷移は当社の計測、予約完了以降は施設の予約データ（専用プランコード）による。予約画面への遷移から予約完了への比率は、識別できた予約のみで算出。</p>
+
+  <h2>施設の売上と増分利益</h2>
+  <div class="kpi" id="hotelKpi"></div>
+
+  <h2>アチーバーの案件利益</h2>
+  <div class="kpi" id="achKpi"></div>
+
+  <h2>計測できなかった予約</h2>
+  <p id="unknownNote"></p>
+
+  <h2>改善案（見本）</h2>
+  <div class="box"><ol id="improve" style="margin:0;padding-left:1.4em"></ol></div>
+</section>
+</main>
+
+<dialog id="dlg"><h3 id="dlgTitle"></h3><div id="dlgBody"></div><p style="margin-top:16px"><button class="btn" id="dlgClose">閉じる</button></p></dialog>
+
+<script>
+const yen = n => (n<0?"▲":"") + Math.abs(Math.round(n)).toLocaleString("ja-JP") + "円";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- 仮データ ---------- */
+const state = {
+  bookingClicks: 0,
+  projects: [
+    {name:"ホテル1施設 限定プラン", person:"鈴木優香さん（参加検討中）", stage:"施設候補の選定", owner:"アチーバー／クレド"},
+    {name:"兒玉遙さん企画", person:"兒玉遙さん（参加検討中）", stage:"本人の希望を確認前", owner:"白井さん経由で面談設定"},
+  ],
+  stages:["本人の希望を確認前","施設候補の選定","提案中","契約・許諾の確認","制作中","公開・販売中","報告・継続判断","終了"],
+  deals:[
+    {co:"ホテルA（仮）", kind:"施設", status:"提案前", next:"白井さんから紹介"},
+    {co:"ホテルB（仮）", kind:"施設", status:"提案前", next:"施設調査"},
+    {co:"協賛候補C社（仮）", kind:"協賛", status:"未接触", next:"候補リスト作成"},
+  ],
+  dealStatus:["未接触","提案前","提案中","見積提出","合意","見送り"],
+  checks:[
+    {id:"c1", label:"施設との業務委託契約", req:true, done:false},
+    {id:"c2", label:"施設：専用プランコードの設定とデータ共有の合意", req:true, done:false},
+    {id:"c3", label:"出演者：出演・体験・発信の条件合意（出演料・投稿本数）", req:true, done:false},
+    {id:"c4", label:"出演者：肖像・映像の利用範囲と期間の許諾", req:true, done:false},
+    {id:"c5", label:"施設：施設名・写真の使用承認", req:true, done:false},
+    {id:"c6", label:"広告表示・景品表示法の表記確認（専門家）", req:true, done:false},
+    {id:"c7", label:"協賛企業との契約（協賛がある場合）", req:false, done:false},
+  ],
+  assets:[
+    {name:"短尺動画 ×6本", by:"外部編集＋AIチーム（切り出し・字幕下書き）", status:"未着手"},
+    {name:"紹介ページ", by:"アチーバー＋AIチーム（文案）", status:"デモのみ"},
+    {name:"投稿文（施設アカウント用）", by:"AIチーム下書き→人が確認", status:"未着手"},
+    {name:"よくある質問", by:"AIチーム下書き→施設確認", status:"下書き"},
+    {name:"ホテル向け提案書", by:"アチーバー＋AIチーム", status:"たたき台"},
+  ],
+  bookings:[
+    ["R-1001","YUMEPRO-H1","利用完了","プランコード"],
+    ["R-1002","YUMEPRO-H1","利用完了","プランコード"],
+    ["R-1003","YUMEPRO-H1","キャンセル","プランコード"],
+    ["R-1004","YUMEPRO-H1","予約中","プランコード"],
+    ["R-1004","YUMEPRO-H1","予約中","プランコード（日程変更・重複行）"],
+    ["R-1005","—","利用完了","特典コード（電話予約）"],
+    ["R-1006","YUMEPRO-H1","利用完了","プランコード"],
+    ["X-OTA-77","—","利用完了","識別不能（OTA経由）"],
+    ["R-1007","YUMEPRO-H1","予約中","プランコード"],
+    ["—","—","—","識別不能（チェックイン時「動画を見た」と回答・参考値）"],
+  ],
+};
+const P = { // 採算モデル.xlsx の前提と同じ初期値（仮定）
+  setup:800000, monthly:250000, months:3, extraN:0, extraUnit:150000, sponsors:0, sponsorUnit:500000, sponsorCost:50000,
+  talent:400000, shoot:200000, edit:150000, travel:50000, ads:300000, adsByHotel:0, sys:30000, ai:20000, extraCost:50000,
+  hHours:60, hRate:8000, aHours:50, aRate:5000, extraHours:8,
+  price:80000, room:40000, food:24000, spa:16000, roomVar:6000, foodRate:0.32, spaRate:0.6,
+  bookings:20, cancelRate:0.1, incr:0.7, shootSupport:60000,
+};
+const FIELDS = [
+  ["setup","企画運営費（円）"],["monthly","月額運営料（円）"],["months","運営月数"],["sponsors","協賛社数"],["sponsorUnit","協賛単価（円）"],
+  ["talent","出演費（円）"],["shoot","撮影費（円）"],["edit","編集外注費（円）"],["travel","交通費（円）"],["ads","広告費（円）"],
+  ["adsByHotel","広告費 施設負担（1/0）"],["sys","システム費 月額（円）"],["ai","AIツール 月額（円）"],
+  ["hHours","人の作業時間"],["hRate","人の時間単価（円）"],["aHours","AIチーム作業時間"],["aRate","AIチーム時間単価（円）"],
+  ["price","プラン価格 1室（円）"],["bookings","識別できた予約完了数"],["cancelRate","キャンセル率（0〜1）"],["incr","増分率（0〜1）"],
+];
+
+/* ---------- 計算（xlsxと同じ式） ---------- */
+function calc(p){
+  const a = {};
+  a.revSetup=p.setup; a.revMonthly=p.monthly*p.months; a.revExtra=p.extraN*p.extraUnit; a.revSponsor=p.sponsors*p.sponsorUnit;
+  a.revAds = p.adsByHotel==1 ? p.ads : 0;
+  a.rev = a.revSetup+a.revMonthly+a.revExtra+a.revSponsor+a.revAds;
+  a.out = p.talent+p.shoot+p.edit+p.travel+p.ads+p.sys*p.months+p.ai*p.months+p.sponsors*p.sponsorCost+p.extraN*p.extraCost;
+  a.cashGross = a.rev-a.out;
+  a.human = p.hHours*p.hRate + p.extraN*p.extraHours*p.hRate; a.aiWork = p.aHours*p.aRate;
+  a.profit = a.cashGross - a.human - a.aiWork;
+  const h = {};
+  h.booked=p.bookings; h.cancel=Math.round(p.bookings*p.cancelRate); h.done=h.booked-h.cancel;
+  h.sales=h.done*p.price; h.unitMargin=p.price-p.roomVar-p.food*p.foodRate-p.spa*p.spaRate;
+  h.margin=h.done*h.unitMargin; h.incrMargin=h.margin*p.incr;
+  h.pay=a.revSetup+a.revMonthly+a.revExtra+a.revAds; h.cost=h.pay+p.shootSupport; h.incrProfit=h.incrMargin-h.cost;
+  h.beDone = h.unitMargin*p.incr>0 ? Math.ceil(h.cost/(h.unitMargin*p.incr)) : 0;
+  h.beBooked = p.cancelRate<1 ? Math.ceil(h.beDone/(1-p.cancelRate)) : 0;
+  h.credoSpa = h.done*p.spa*p.spaRate;
+  return {a,h};
+}
+
+/* ---------- 描画 ---------- */
+function opt(list, v){ return list.map(s=>`<option${s===v?" selected":""}>${esc(s)}</option>`).join(""); }
+function renderA(){
+  $("#projectCards").innerHTML = `
+   <div class="box"><span class="tag">初回実証の対象</span><h3 style="margin-top:8px">ホテル1施設の限定プラン</h3>
+     <p>宿泊・食事・スパを組み合わせた体験を、出演者が体験・発信します。</p><p><span class="tag pending">鈴木優香さん（参加検討中）</span></p></div>
+   <div class="box"><span class="tag off">別案件として設計予定</span><h3 style="margin-top:8px">兒玉遙さんの企画</h3>
+     <p>ご本人が実現したいことを伺ってから企画します。内容は未定です。</p><p><span class="tag pending">兒玉遙さん（参加検討中）</span></p></div>
+   <div class="box"><span class="tag off">募集準備中</span><h3 style="margin-top:8px">次の挑戦企画</h3>
+     <p>初回実証の結果を見て、受付を始めます。</p></div>`;
+}
+function renderC(){
+  $("#projTable").innerHTML = `<tr><th>企画</th><th>出演者</th><th>段階</th><th>担当</th></tr>` +
+    state.projects.map((p,i)=>`<tr><td>${esc(p.name)}</td><td><span class="tag pending">${esc(p.person)}</span></td>
+     <td><select aria-label="${esc(p.name)}の段階" data-proj="${i}">${opt(state.stages,p.stage)}</select></td><td>${esc(p.owner)}</td></tr>`).join("");
+  $("#dealTable").innerHTML = `<tr><th>相手先</th><th>種別</th><th>状況</th><th>次の作業</th></tr>` +
+    state.deals.map((d,i)=>`<tr><td>${esc(d.co)}</td><td>${esc(d.kind)}</td>
+     <td><select aria-label="${esc(d.co)}の状況" data-deal="${i}">${opt(state.dealStatus,d.status)}</select></td><td>${esc(d.next)}</td></tr>`).join("");
+  $("#checks").innerHTML = state.checks.map(c=>`<label class="check" style="color:var(--ink);font-size:15px;margin:0">
+     <input type="checkbox" data-check="${c.id}" ${c.done?"checked":""}><span>${esc(c.label)}${c.req?"":"　<span class='tag off'>任意</span>"}</span></label>`).join("");
+  const missing = state.checks.filter(c=>c.req&&!c.done);
+  $("#publishState").innerHTML = missing.length
+    ? `<span class="tag pending">公開不可</span> 必須の確認が ${missing.length} 件残っています。`
+    : `<span class="tag">公開可能</span> 必須の確認がすべて完了しています（デモ上の表示です）。`;
+  $("#assetTable").innerHTML = `<tr><th>制作物</th><th>作成者</th><th>状態</th></tr>` +
+    state.assets.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.by)}</td><td>${esc(x.status)}</td></tr>`).join("");
+  renderBookings(); renderTasks(); renderPL();
+}
+function bookingSummary(){
+  const seen = new Set(); let ident=0, cancel=0, done=0, active=0, dup=0, unknown=0;
+  for (const [no,,st,how] of state.bookings){
+    if (how.startsWith("識別不能")) { unknown++; continue; }
+    if (seen.has(no)) { dup++; continue; }
+    seen.add(no); ident++;
+    if (st==="キャンセル") cancel++; else if (st==="利用完了") done++; else active++;
+  }
+  return {ident,cancel,done,active,dup,unknown};
+}
+function renderBookings(){
+  $("#bookTable").innerHTML = `<tr><th>予約番号</th><th>プランコード</th><th>状態</th><th>識別方法</th></tr>` +
+    state.bookings.map(b=>`<tr><td>${esc(b[0])}</td><td>${esc(b[1])}</td><td>${esc(b[2])}</td><td>${esc(b[3])}</td></tr>`).join("");
+  const s = bookingSummary();
+  $("#bookKpi").innerHTML = `<div><b>${s.ident}件</b><span>識別できた予約（重複除外後）</span></div>
+    <div><b>${s.done}件</b><span>利用完了</span></div><div><b>${s.cancel}件</b><span>キャンセル</span></div>
+    <div><b>${s.active}件</b><span>予約中（未利用）</span></div><div><b>${s.dup}行</b><span>重複として除外</span></div>
+    <div><b>${s.unknown}件</b><span>識別不能（成果に含めない）</span></div>`;
+}
+function renderTasks(){
+  const t = [];
+  const proj = state.projects[0];
+  if (["本人の希望を確認前","施設候補の選定"].includes(proj.stage)) t.push("白井さんから初回の施設候補を1〜2か所紹介いただく");
+  state.checks.filter(c=>c.req&&!c.done).forEach(c=>t.push("確認：" + c.label));
+  if (state.deals.every(d=>d.kind!=="協賛"||["未接触","提案前"].includes(d.status))) t.push("協賛候補への提案準備（出演者の許諾範囲が決まってから）");
+  t.push("兒玉遙さんの希望を伺う面談の設定（白井さん経由）");
+  $("#nextTasks").innerHTML = t.map(x=>`<li>${esc(x)}</li>`).join("");
+}
+function renderPL(){
+  if (!$("#inputs").dataset.ready){
+    $("#inputs").innerHTML = FIELDS.map(([k,l])=>`<div><label for="in-${k}">${l}</label><input type="number" step="any" id="in-${k}" data-key="${k}" value="${P[k]}"></div>`).join("");
+    $("#inputs").dataset.ready = "1";
+  }
+  const {a,h} = calc(P);
+  const neg = v => v<0 ? ' class="neg"' : "";
+  $("#plKpi").innerHTML = `<div><b>${yen(a.rev)}</b><span>アチーバー売上</span></div>
+    <div><b${neg(a.cashGross)}>${yen(a.cashGross)}</b><span>現金ベースの粗利</span></div>
+    <div><b${neg(a.profit)}>${yen(a.profit)}</b><span>案件利益（工数込み）</span></div>
+    <div><b${neg(h.incrProfit)}>${yen(h.incrProfit)}</b><span>施設の増分利益</span></div>
+    <div><b>${h.beBooked}件</b><span>施設の損益分岐（予約完了）</span></div>`;
+  const rows = [
+    ["アチーバー","売上合計",a.rev],["アチーバー","外部支出（出演・撮影・編集・交通・広告・システム・AIツール等）",-a.out],
+    ["アチーバー","人の作業費",-a.human],["アチーバー","AIチーム作業費",-a.aiWork],["アチーバー","案件利益（工数込み）",a.profit],
+    ["施設","プラン売上（利用完了 "+h.done+"件）",h.sales],["施設","変動費（客室・食事原価・スパ原価）",-(h.sales-h.margin)],
+    ["施設","増分限界利益（×増分率）",h.incrMargin],["施設","アチーバーへの支払＋撮影協力原価",-h.cost],["施設","増分利益",h.incrProfit],
+    ["参考","クレド：スパ施術料（契約形態は未確定）",h.credoSpa],
+  ];
+  $("#plTable").innerHTML = `<tr><th>区分</th><th>項目</th><th class="num">金額</th></tr>` +
+    rows.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])}</td><td class="num${r[2]<0?' neg':''}">${yen(r[2])}</td></tr>`).join("");
+}
+function renderD(){
+  const {a,h} = calc(P);
+  const sample = {views:48000, visits:1900, clicks:310};
+  const steps = [
+    ["再生数",sample.views,"仮"],["紹介ページ訪問",sample.visits,"仮"],["予約画面への遷移",sample.clicks,"仮"],
+    ["識別できた予約完了",h.booked,"C画面"],["キャンセル",h.cancel,"C画面"],["利用完了",h.done,"C画面"],
+  ];
+  const max = Math.log10(sample.views+1);
+  $("#funnel").innerHTML = steps.map(s=>`<div class="row"><span>${s[0]}</span>
+     <div class="bar${s[2]==="C画面"?" pending":""}" style="width:${Math.max(1,Math.log10(s[1]+1)/max*100)}%"></div>
+     <span class="num" style="text-align:right">${s[1].toLocaleString("ja-JP")}</span></div>`).join("") +
+    `<p class="note" style="margin-top:8px">棒の長さは対数目盛。緑＝当社計測、黄土色＝施設データ。予約画面への遷移→予約完了：${sample.clicks?(h.booked/sample.clicks*100).toFixed(1):"0"}%（仮）</p>`;
+  const neg = v => v<0 ? ' class="neg"' : "";
+  $("#hotelKpi").innerHTML = `<div><b>${yen(h.sales)}</b><span>プラン売上（利用完了ベース）</span></div>
+    <div><b>${yen(h.incrMargin)}</b><span>増分限界利益</span></div><div><b>${yen(h.cost)}</b><span>施策費用</span></div>
+    <div><b${neg(h.incrProfit)}>${yen(h.incrProfit)}</b><span>増分利益</span></div><div><b>${h.beBooked}件</b><span>損益分岐の予約完了数</span></div>`;
+  $("#achKpi").innerHTML = `<div><b>${yen(a.rev)}</b><span>売上</span></div><div><b${neg(a.cashGross)}>${yen(a.cashGross)}</b><span>現金ベースの粗利</span></div>
+    <div><b${neg(a.profit)}>${yen(a.profit)}</b><span>案件利益（工数込み）</span></div>
+    <div><b>${(P.hHours+P.aHours).toLocaleString()}時間</b><span>作業時間（人${P.hHours}・AI${P.aHours}）</span></div>`;
+  const s = bookingSummary();
+  $("#unknownNote").textContent = `識別不能な予約・回答が ${s.unknown} 件ありました（OTA経由、チェックイン時の任意回答など）。これらは件数のみ記録し、売上・利益の計算には含めていません。重複行 ${s.dup} 行は予約番号で除外しました。`;
+  const imp = [];
+  if (h.incrProfit<0) imp.push(`施設の増分利益が赤字（${yen(h.incrProfit)}）。損益分岐まで予約完了があと ${Math.max(0,h.beBooked-h.booked)} 件必要。固定費を下げ成果報酬を加える料金体系への変更を協議する。`);
+  if (a.profit<0) imp.push(`アチーバーの案件利益が赤字（${yen(a.profit)}）。協賛 ${Math.ceil(-a.profit/(P.sponsorUnit-P.sponsorCost))} 社で黒字化（他条件同一）。出演費の協賛充当を優先する。`);
+  imp.push("予約画面への遷移が多く予約完了が少ない場合は、料金・対象日・空室の表示を紹介ページで先に見せる。");
+  imp.push("作業時間の実測値（人・AIチーム別）を2施設目の見積に反映する。");
+  $("#improve").innerHTML = imp.map(x=>`<li>${esc(x)}</li>`).join("");
+}
+
+/* ---------- 操作 ---------- */
+function showDialog(title, html){ $("#dlgTitle").textContent = title; $("#dlgBody").innerHTML = html; $("#dlg").showModal(); }
+$("#dlgClose").onclick = () => $("#dlg").close();
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected", x===b));
+  ["a","b","c","d"].forEach(t => $("#tab-"+t).hidden = (t!==b.dataset.tab));
+  if (b.dataset.tab==="d") renderD();
+  window.scrollTo(0,0);
+});
+$("#goBooking").onclick = () => {
+  state.bookingClicks++;
+  $("#clickNote").textContent = `このデモで予約画面ボタンが押された回数：${state.bookingClicks}回（再読み込みで0に戻ります）`;
+  showDialog("予約画面には移動しません（デモ）",
+    `<p>本番では、施設の公式予約画面の「夢プロ専用プラン」へ移動します。予約先は未設定です。</p>
+     <p>本番で付ける予定の識別情報：<br><code>plan=YUMEPRO-H1&amp;utm_source=yumepro&amp;utm_medium=lp&amp;utm_campaign=hotel1</code></p>
+     <p class="note">このクリックは「予約画面への遷移」としてのみ数えます。予約完了は施設の予約データで確認します。</p>`);
+};
+document.querySelector('[data-demo="contact-company"]').onclick = () =>
+  showDialog("送信していません（デモ）", `<p>本番では、担当者へ問い合わせが届くフォームを設置します。現在は未接続のため、メールは送信されません。</p>`);
+$("#applyForm").onsubmit = e => {
+  e.preventDefault(); e.target.reset();
+  showDialog("送信していません（デモ）", `<p>入力内容は送信も保存もしていません（入力欄を空にしました）。</p><p>本番では、個人情報の取扱いへの同意を得たうえで受け付けます。</p>`);
+};
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.proj) { state.projects[t.dataset.proj].stage = t.value; renderTasks(); }
+  if (t.dataset.deal) { state.deals[t.dataset.deal].status = t.value; renderTasks(); }
+  if (t.dataset.check) { state.checks.find(c=>c.id===t.dataset.check).done = t.checked; renderC(); }
+});
+document.addEventListener("input", e => {
+  const k = e.target.dataset.key; if (!k) return;
+  const v = parseFloat(e.target.value); P[k] = isNaN(v) ? 0 : v; renderPL();
+});
+renderA(); renderC();
+</script>
+</body>
+</html>

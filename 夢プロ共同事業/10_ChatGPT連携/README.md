@@ -24,3 +24,12 @@ python3 10_ChatGPT連携/ask_openai.py "料金案の弱点を指摘して" -f 07
 ```
 - 結果は `ログ/日付_テーマ.md` に「未反映」で保存 → Claudeに「反映して」と依頼
 - `--dry-run` で送信せず対象と文字数を確認、`OPENAI_MODEL` でモデル変更可
+
+## 議論の自動往復(debate.py)
+ChatGPTが案を出し、ClaudeがAPI経由で批評、を指定ラウンド繰り返して結論をログ化する。
+```
+export OPENAI_API_KEY=sk-... ANTHROPIC_API_KEY=sk-ant-...
+python3 10_ChatGPT連携/debate.py "料金案の弱点を洗い出し改善案をまとめて" -f 07_アチーバー収益設計.md -r 3 -t 料金議論
+```
+- APIキーが2つ必要(環境のシークレットに両方登録)。`--dry-run`で呼び出し回数を確認
+- 結果は `ログ/` に「未反映」で保存 → Claudeに「反映して」と依頼

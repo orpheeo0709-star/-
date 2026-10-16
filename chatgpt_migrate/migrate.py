@@ -61,6 +61,7 @@ class Ctx:
         self.state_p = self.out / "_work" / "state.json"
         self.state = json.loads(self.state_p.read_text("utf-8")) if self.state_p.exists() else {"done": {}}
         self.missing = []  # 不足データ一覧
+        self.extra_zips = []  # --zip で明示指定されたZIP
 
     def save(self):
         jdump(self.state_p, self.state)
@@ -77,7 +78,9 @@ def stage_verify(c):
     """Downloads 直下の conversations*.json と エクスポートZIP だけを対象にする(他は読まない)。"""
     cands = [p for p in c.dl.glob("*") if p.is_file() and (
         re.fullmatch(r"conversations.*\.json", p.name, re.I) or
-        (p.suffix.lower() == ".zip" and re.search(r"chatgpt|openai|conversations|export", p.name, re.I)))]
+        (p.suffix.lower() == ".zip" and (re.search(r"chatgpt|openai|conversations|export", p.name, re.I)
+                                         or re.match(r"[0-9a-f]{32,}", p.name, re.I))))]
+    cands += [Path(z) for z in c.extra_zips if Path(z).is_file() and Path(z) not in cands]
     rep = {"files": [], "json": None, "zips": []}
     for p in sorted(cands):
         rep["files"].append({"path": str(p), "bytes": p.stat().st_size, "sha256": sha256(p)})
@@ -301,45 +304,94 @@ def stage_memory(c):
 
 
 # ---------- 6. attachments ----------
+def norm_id(x):
+    return re.sub(r"^[\w\-]+://", "", x or "")  # file-service:// のようなハイフン入りスキームも除去
+
+
+def id_core(x):
+    return re.sub(r"^file[-_]", "", norm_id(x))
+
+
+def _salvage():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("zipsalvage", Path(__file__).resolve().parent / "zipsalvage.py")
+    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
+
+
 def stage_attachments(c):
+    """参照を重複除去 → ZIPを展開(ディレクトリ構造維持) → ZIP内に ある/ない を分類して記録。"""
     idx = json.loads((c.out / "全会話_分割" / "index.json").read_text("utf-8"))
-    refs = []  # (file_id, name, conversation_id)
+    uniq = {}  # (file_id, conversation_id) 単位で重複除去
     for r in idx:
         raw = json.loads((c.out / "全会話_分割" / "json" / f"{r['file']}.json").read_text("utf-8"))["raw"]
         for n in (raw.get("mapping") or {}).values():
             m = n.get("message")
             if not m: continue
             for a in (m.get("metadata") or {}).get("attachments", []) or []:
-                refs.append((a.get("id"), a.get("name"), r["conversation_id"]))
+                uniq.setdefault((norm_id(a.get("id")), r["conversation_id"]), a.get("name"))
             for p in (m.get("content") or {}).get("parts") or []:
                 if isinstance(p, dict) and p.get("asset_pointer"):
-                    refs.append((re.sub(r"^\w+://", "", p["asset_pointer"]), None, r["conversation_id"]))
+                    uniq.setdefault((norm_id(p["asset_pointer"]), r["conversation_id"]), None)
     d = c.out / "添付ファイル回収分"
-    d.mkdir(parents=True, exist_ok=True)
-    recovered = {}
+    (d / "files").mkdir(parents=True, exist_ok=True)
+    zip_names, extracted, failed, zinfo = [], {}, {}, []
     for zp in c.sources().get("zips", []):
+        info = {"zip": zp, "method": None}
         try:
             with zipfile.ZipFile(zp) as zf:
-                for info in zf.infolist():
-                    if info.is_dir() or info.filename.endswith("conversations.json"): continue
-                    target = (d / "files" / Path(info.filename).name)
-                    if ".." in info.filename.split("/"): continue  # zip slip 対策
+                info["method"] = "zipfile"
+                for i in zf.infolist():
+                    zip_names.append(i.filename)
+                    if i.is_dir() or i.filename.endswith("conversations.json"): continue
+                    parts = [x for x in i.filename.replace("\\", "/").split("/") if x not in ("", ".", "..") and ":" not in x]
+                    if not parts: continue
+                    target = d / "files" / Path(*parts)
                     try:
                         target.parent.mkdir(parents=True, exist_ok=True)
-                        with zf.open(info) as a, open(target, "wb") as b:
+                        with zf.open(i) as a, open(target, "wb") as b:
                             shutil.copyfileobj(a, b)
-                        recovered[Path(info.filename).name] = str(target.relative_to(c.out))
+                        extracted[i.filename] = str(target.relative_to(c.out))
                     except Exception as e:
-                        c.miss("添付ファイル読出失敗", f"{info.filename}: {e}")
-        except Exception as e:
-            c.miss("ZIP読出失敗", f"{Path(zp).name}: {e}(破損箇所以降の添付は未回収)")
-    mapping = []
-    for fid, name, cid in refs:
-        hit = next((v for k, v in recovered.items() if fid and fid in k), None)
-        mapping.append({"file_id": fid, "name": name, "conversation_id": cid, "recovered": hit})
-        if not hit: c.miss("添付ファイル未回収", f"{name or fid} (会話 {cid})")
+                        failed[i.filename] = f"{type(e).__name__}: {e}"
+                        try: target.unlink()
+                        except OSError: pass
+        except Exception as e:  # 中央ディレクトリ欠損など → 順次読みで救出
+            info["method"] = "salvage"; info["zipfile_error"] = f"{type(e).__name__}: {e}"
+            ents, endr = _salvage().walk(zp, out_dir=d / "files")
+            info["end_reason"] = endr
+            for en in ents:
+                zip_names.append(en["name"])
+                if en["name"].endswith("/") or en["name"].endswith("conversations.json"): continue
+                if en["ok"]: extracted[en["name"]] = str(Path("添付ファイル回収分") / "files" / en["name"])
+                else: failed[en["name"]] = en["error"]
+            c.miss("ZIP破損(末尾欠損等)", f"{Path(zp).name}: {info['zipfile_error']} / 順次読みで {sum(1 for e in ents if e['ok'])} 件救出, 終了理由 {endr}")
+        zinfo.append(info)
+    names = {Path(n).name: n for n in zip_names}
+    ext_by_base = {Path(n).name: v for n, v in extracted.items()}
+    mapping, cats = [], {"回収済み": 0, "ZIP内に存在するが抽出失敗": 0, "ZIP内に存在しない": 0, "ID不明": 0}
+    for (fid, cid), name in uniq.items():
+        core = id_core(fid)
+        rec = fail = None
+        if len(core) >= 8:
+            rec = next((v for b, v in ext_by_base.items() if core in b), None)
+            if not rec:
+                fail = next((n for n in failed if core in Path(n).name), None)
+        inzip = next((n for b, n in names.items() if len(core) >= 8 and core in b), None)
+        if len(core) < 8: cat = "ID不明"
+        elif rec: cat = "回収済み"
+        elif fail: cat = "ZIP内に存在するが抽出失敗"
+        elif inzip: cat = "ZIP内に存在するが抽出失敗"  # 一覧にあるが未抽出
+        else: cat = "ZIP内に存在しない"
+        cats[cat] += 1
+        mapping.append({"file_id": fid, "name": name, "conversation_id": cid, "recovered": rec,
+                        "分類": cat, "zip_entry": fail or inzip, "error": failed.get(fail) if fail else None})
     jdump(d / "添付と会話の対応表.json", mapping)
-    jdump(d / "回収済みファイル一覧.json", recovered)
+    jdump(d / "回収済みファイル一覧.json", extracted)
+    jdump(d / "抽出失敗ファイル一覧.json", failed)
+    jdump(c.out / "検証結果" / "02_添付ファイル集計.json", {"参照数(重複除去後)": len(uniq), "分類": cats, "ZIP情報": zinfo,
+                                                      "ZIP内エントリ数": len(zip_names), "抽出成功": len(extracted), "抽出失敗": len(failed)})
+    for k, v in cats.items():
+        if k != "回収済み" and v: c.miss(f"添付ファイル:{k}", f"{v}件(詳細は添付と会話の対応表.json)")
 
 
 # ---------- 7. outputs ----------
@@ -459,12 +511,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--downloads", default=str(Path.home() / "Downloads"))
     ap.add_argument("--stage", choices=STAGES)
+    ap.add_argument("--zip", action="append", default=[], help="対象ZIPを明示(名前が一般的でない場合)")
     ap.add_argument("--force", action="store_true", help="完了済み工程も再実行")
     a = ap.parse_args()
     dl = Path(a.downloads)
     out = dl / OUT_NAME
     out.mkdir(parents=True, exist_ok=True)
     c = Ctx(dl, out)
+    c.extra_zips = a.zip
     todo = [a.stage] if a.stage else STAGES
     for s in todo:
         if c.state["done"].get(s) and not a.force and not a.stage:
